@@ -9,6 +9,8 @@ import sklearn.datasets
 from numpy import ndarray
 from sklearn.datasets import load_boston, load_iris
 from sklearn.metrics import mean_absolute_percentage_error
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.utils import shuffle
 
 path = os.getcwd()
@@ -85,11 +87,12 @@ def kNN_classifier():
 
 
 def kNN_regressor():
-    X, y = load_boston(return_X_y=True)
+    X_y = load_iris()
 
     '''
     Normalize data
     '''
+    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
 
     columns = len(X[0])
     rows = len(X[:, 0])
@@ -150,9 +153,32 @@ def kNN_regressor():
             print("fold ", fold, " error: ", error)
 
 
-# def kNN_SciKit_classifier:
+def kNN_SciKit_classifier():
+    X_y = load_iris()
+    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+    neigh = KNeighborsClassifier(n_neighbors=3)
+    neigh.fit(X_train, y_train)
+
+    print("score", neigh.score(X_test,y_test))
+
+def kNN_SciKit_regressor():
+    X_y = load_boston()
+    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+    neigh = KNeighborsRegressor(n_neighbors=3)
+    neigh.fit(X_train, y_train)
+    Y = neigh.predict(X_test)
+
+    error = mean_absolute_percentage_error(Y, y_test)
+    print("error", error)
 
 
 if __name__ == '__main__':
-    kNN_classifier()
-    kNN_regressor()
+    #kNN_classifier()
+    #kNN_regressor()
+
+    kNN_SciKit_classifier()
+    kNN_SciKit_regressor()
