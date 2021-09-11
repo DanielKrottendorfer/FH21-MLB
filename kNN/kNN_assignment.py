@@ -6,7 +6,8 @@ from itertools import chain
 import numpy as np
 import pandas as pd
 import sklearn.datasets
-from sklearn.datasets import load_boston
+from numpy import ndarray
+from sklearn.datasets import load_boston, load_iris
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.utils import shuffle
 
@@ -17,30 +18,27 @@ k_max = 11
 
 
 def kNN_classifier():
-    df = pd.read_csv(os.path.join(path, "iris.csv"), sep=";")
+    X_y = load_iris()
 
     '''
     Normalize data
     '''
-    for c in df.columns.values:
-        if c == "class":
-            continue
+    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
+    for c in range(0, len(X[0])):
 
-        min_v = df[c].min()
-        max_v = df[c].max()
+        x = X[:, c]
 
-        for i in range(0, len(df[c].values)):
-            df[c].iloc[i] = (df[c].iloc[i] - min_v) / (max_v - min_v)
+        min_v = x.min()
+        max_v = x.max()
 
-    '''
-    Replace class names with numbers
-    '''
-    labels = np.unique(df["class"])
-    df["class"].replace({labels[0]: 0, labels[1]: 1, labels[2]: 2}, inplace=True)
+        for i in range(0, len(x)):
+            X[:, c][i] = (X[:, c][i] - min_v) / (max_v - min_v)
 
-    shuffle(df)
+    rows = len(X)
+    columns = len(X[0])
+    labels = np.unique(y)
 
-    segment_len = int(len(df) / folds)
+    segment_len = int(rows / folds)
 
     for k in range(3, k_max + 1, 2):
         print("k: ", k)
@@ -51,29 +49,34 @@ def kNN_classifier():
             hits = 0
 
             for validation in range(validation_start, validation_start + segment_len):
-                v = df.iloc[validation]
+                v = X[validation]
 
                 distances = list()
                 for training in chain(range(0, validation_start),
                                       range(validation_start + segment_len, segment_len * (folds - 1))):
-                    t = df.iloc[training]
-                    distances.append((math.sqrt(
-                        math.pow(t[0] - v[0], 2) + math.pow(t[1] - v[1], 2) +
-                        math.pow(t[2] - v[2], 2) + math.pow(t[3] - v[3], 2)), training))
+                    t = X[training]
+
+                    distance = 0
+                    for i in range(0, columns):
+                        distance += math.pow(v[i] - t[i], 2)
+                    distance = math.sqrt(distance)
+
+                    distances.append((distance, training))
 
                 distances.sort()
 
-                results = [0] * len(labels)
-                for c in range(0, k):
-                    result = int(df.iloc[distances[c][1]]["class"])
-                    results[result] += 1
+                nearestN = distances[:k]
+                results = [0] * labels
+
+                for n in nearestN:
+                    results[y[n[1]]] += 1
 
                 winner = 0
-                for r in range(0, len(labels)):
-                    if results[r] > winner:
+                for r in range(0, len(results)):
+                    if results[r] > results[winner]:
                         winner = r
 
-                if winner == v["class"]:
+                if winner == y[validation]:
                     hits += 1
 
             print("fold ", fold, " accuracy: ", hits / segment_len)
@@ -121,7 +124,7 @@ def kNN_regressor():
 
                     distance = 0
                     for i in range(0, columns):
-                        distance += math.pow(v[i]-t[i], 2)
+                        distance += math.pow(v[i] - t[i], 2)
                     distance = math.sqrt(distance)
 
                     distances.append((distance, training))
@@ -130,13 +133,13 @@ def kNN_regressor():
 
                 nearestN = distances[:k]
 
-                total_sum = 0.0
+                total_distance = 0.0
                 for d in nearestN:
-                    total_sum += d[0]
+                    total_distance += d[0]
 
                 Y = 0.0
                 for n in nearestN:
-                    Y += y[n[1]] * (n[0] / total_sum)
+                    Y += y[n[1]] * (n[0] / total_distance)
 
                 mea += Y - y[validation]
 
@@ -144,9 +147,10 @@ def kNN_regressor():
                 y_true.append(y[n[1]])
 
             error = mean_absolute_percentage_error(y_true, y_pred)
-            print("fold ", fold, "error: ", error)
+            print("fold ", fold, " error: ", error)
 
 
+# def kNN_SciKit_classifier:
 
 
 if __name__ == '__main__':
