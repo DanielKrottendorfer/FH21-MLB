@@ -21,11 +21,11 @@ k_max = 11
 
 def kNN_classifier():
     X_y = load_iris()
+    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
 
     '''
     Normalize data
     '''
-    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
     for c in range(0, len(X[0])):
 
         x = X[:, c]
@@ -88,11 +88,11 @@ def kNN_classifier():
 
 def kNN_regressor():
     X_y = load_iris()
+    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
 
     '''
     Normalize data
     '''
-    (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
 
     columns = len(X[0])
     rows = len(X[:, 0])
@@ -157,17 +157,18 @@ def kNN_SciKit_classifier():
     X_y = load_iris()
     (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     neigh = KNeighborsClassifier(n_neighbors=3)
     neigh.fit(X_train, y_train)
 
-    print("score", neigh.score(X_test,y_test))
+    print("score", neigh.score(X_test, y_test))
+
 
 def kNN_SciKit_regressor():
     X_y = load_boston()
     (X, y) = shuffle(X_y["data"], X_y["target"], random_state=0)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state = 42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     neigh = KNeighborsRegressor(n_neighbors=3)
     neigh.fit(X_train, y_train)
     Y = neigh.predict(X_test)
@@ -177,8 +178,10 @@ def kNN_SciKit_regressor():
 
 
 if __name__ == '__main__':
-    #kNN_classifier()
-    #kNN_regressor()
+    kNN_classifier()
+    kNN_regressor()
+
+    print()
 
     kNN_SciKit_classifier()
     kNN_SciKit_regressor()
